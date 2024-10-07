@@ -12,6 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Logo from "../images/Logo.webp";
 
 const COLORS = [
   "#8884d8",
@@ -37,16 +38,17 @@ const backgroundStyle = {
 };
 
 const cardStyle = {
-  backgroundColor: "rgba(255, 255, 255, 0.1%)",
+  backgroundColor: "rgba(243, 239, 230, 1)",
   borderRadius: "8px",
   padding: "20px",
-  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+  boxShadow: "0 4px 4px rgba(0, 0, 0, 0.5)",
   marginBottom: "20px",
 };
-const SurveyInsightsDashboard = () => {
+const Dashboard = () => {
   const [surveyData, setSurveyData] = useState([]);
   const [ageFilter, setAgeFilter] = useState("All");
   const [locationFilter, setLocationFilter] = useState("All");
+  const [educationFilter, setEducationFilter] = useState("All");
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,9 +73,10 @@ const SurveyInsightsDashboard = () => {
     return surveyData.filter(
       (item) =>
         (ageFilter === "All" || item.AgeGroup === ageFilter) &&
-        (locationFilter === "All" || item.Location === locationFilter)
+        (locationFilter === "All" || item.Location === locationFilter) &&
+        (educationFilter === "All" || item.Education === educationFilter)
     );
-  }, [surveyData, ageFilter, locationFilter]);
+  }, [surveyData, ageFilter, locationFilter, educationFilter]);
 
   const processData = useMemo(() => {
     const ageDistribution = [
@@ -331,47 +334,52 @@ const SurveyInsightsDashboard = () => {
 
   const mainInference = useMemo(() => {
     const totalResponses = filteredData.length;
+
     const experiencedViolence = filteredData.filter(
       (item) => item.ViolenceAgainstWomen === "Yes"
     ).length;
-    const percentage = ((experiencedViolence / totalResponses) * 100).toFixed(
-      1
-    );
+
+    const percentage =
+      totalResponses > 0
+        ? ((experiencedViolence / totalResponses) * 100).toFixed(1)
+        : 0;
+
     return `${percentage}% of women surveyed have experienced some form of violence.`;
   }, [filteredData]);
 
   const generateInferences = useMemo(() => {
     const totalResponses = filteredData.length;
 
+    // Calculate percentage only if totalResponses is greater than 0, otherwise set it to 0
     const physicalViolenceCommon = filteredData.filter(
       (item) =>
         item.PhysicalViolence === "Very common" ||
         item.PhysicalViolence === "Somewhat common"
     ).length;
-    const physicalViolencePercentage = (
-      (physicalViolenceCommon / totalResponses) *
-      100
-    ).toFixed(1);
+    const physicalViolencePercentage =
+      totalResponses > 0
+        ? ((physicalViolenceCommon / totalResponses) * 100).toFixed(1)
+        : 0;
 
     const homeViolence = filteredData.filter(
       (item) =>
         item.PhysicalViolenceLocation &&
         item.PhysicalViolenceLocation.includes("At home")
     ).length;
-    const homeViolencePercentage = (
-      (homeViolence / totalResponses) *
-      100
-    ).toFixed(1);
+    const homeViolencePercentage =
+      totalResponses > 0
+        ? ((homeViolence / totalResponses) * 100).toFixed(1)
+        : 0;
 
     const fearRetaliation = filteredData.filter(
       (item) =>
         item.SexualViolenceBarrier &&
         item.SexualViolenceBarrier.includes("Fear of retaliation")
     ).length;
-    const fearRetaliationPercentage = (
-      (fearRetaliation / totalResponses) *
-      100
-    ).toFixed(1);
+    const fearRetaliationPercentage =
+      totalResponses > 0
+        ? ((fearRetaliation / totalResponses) * 100).toFixed(1)
+        : 0;
 
     return [
       `${physicalViolencePercentage}% of respondents believe physical violence against women is common in their community.`,
@@ -384,8 +392,8 @@ const SurveyInsightsDashboard = () => {
     <div style={backgroundStyle}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <img
-          src="Logo.webp"
-          alt="Logo"
+          src={Logo}
+          alt="SHRI MAHARANI CHIMNABAI STREE UDYOGALAYA"
           style={{ display: "block", margin: "0 auto 20px", maxWidth: "200px" }}
         />
 
@@ -409,20 +417,11 @@ const SurveyInsightsDashboard = () => {
               flexWrap: "wrap",
             }}
           >
-            <h2
-              style={{ fontSize: "20px", marginBottom: "10px", color: "#333" }}
-            >
-              Total Responses: {filteredData.length}
+            <h2 style={{ fontSize: "20px", color: "#333" }}>
+              Total Responses: {filteredData?.length} / {surveyData?.length}
             </h2>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "20px",
-                marginBottom: "20px",
-                flexWrap: "wrap",
-              }}
-            >
+            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
               <div>
                 <label htmlFor="ageFilter" style={{ marginRight: "10px" }}>
                   Filter by Age:{" "}
@@ -458,6 +457,37 @@ const SurveyInsightsDashboard = () => {
                   <option value="Urban">Urban</option>
                   <option value="Semi-Urban">Semi-Urban</option>
                   <option value="Rural">Rural</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="educationFilter"
+                  style={{ marginRight: "10px" }}
+                >
+                  Filter by Education:{" "}
+                </label>
+                <select
+                  id="educationFilter"
+                  value={educationFilter}
+                  onChange={(e) => setEducationFilter(e.target.value)}
+                  style={{ padding: "5px", borderRadius: "4px" }}
+                >
+                  <option value="All">All</option>
+                  <option value="No Formal Education">
+                    No Formal Education
+                  </option>
+                  <option value="Primary Education">Primary Education</option>
+                  <option value="Secondary Education">
+                    Secondary Education
+                  </option>
+                  <option value="Higher Secondary Education">
+                    Higher Secondary Education
+                  </option>
+                  <option value="Bachelor's Degree">Bachelor's Degree</option>
+                  <option value="Master's Degree or Higher">
+                    Master's Degree or Higher
+                  </option>
                 </select>
               </div>
             </div>
@@ -688,4 +718,4 @@ const SurveyInsightsDashboard = () => {
   );
 };
 
-export default SurveyInsightsDashboard;
+export default Dashboard;
